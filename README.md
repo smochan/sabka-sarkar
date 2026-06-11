@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Apni Sarkar — अपनी सरकार
 
-## Getting Started
+> An aspirational, **non-partisan** civic thought experiment: a "Dream Cabinet of India" chosen by the public.
+> Not a real or claimed government. Not affiliated with any person or party.
 
-First, run the development server:
+A single-page site where the public **nominates and upvotes** who they'd trust to lead each of 12 ministries — each backed by a "Council of 50" of real practitioners — alongside an aspirational **5-year plan for India**.
+
+## Stack
+
+- Next.js 16 (App Router) + React 19 + TypeScript
+- Tailwind CSS v4 (editorial/civic design system in `src/app/globals.css`)
+- Vercel Postgres for nominations/votes (`@vercel/postgres`)
+- `next/og` for the share card, Vercel Analytics for traction
+
+## Local development
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev          # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Without a database the site runs in **preview mode**: nominees are shown but voting/adding is disabled. To enable the full nomination engine locally, set `POSTGRES_URL` in `.env.local` (see `.env.example`) or run `vercel env pull` after linking the project.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Deploy to Vercel (interactive — run these in your terminal)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+# 1. Log in (opens browser)
+vercel login
 
-## Learn More
+# 2. From the project root, create + deploy. Accept the defaults.
+cd /Users/smochan/Documents/projects/apni-sarkar
+vercel            # creates a preview deployment + links the project
+vercel --prod     # promotes to a production URL (e.g. apni-sarkar.vercel.app)
+```
 
-To learn more about Next.js, take a look at the following resources:
+### Turn on live voting (Vercel Postgres)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. In the Vercel dashboard → your project → **Storage** → **Create Database** → **Postgres** (Neon). Attach it to the project. This auto-adds `POSTGRES_URL` to the environment.
+2. Redeploy: `vercel --prod`.
+3. First visit to `/api/tally` auto-creates the table and seeds the curated nominees. Done — voting and "Suggest someone" go live.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Set the public URL
 
-## Deploy on Vercel
+Add `NEXT_PUBLIC_SITE_URL` (your final domain or the `*.vercel.app` URL) in **Project → Settings → Environment Variables**, then redeploy so OG tags and share links are correct.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Custom domain
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Project → **Settings → Domains** → add the domain you registered (e.g. `apnisarkar.in`) and follow the DNS instructions.
+
+## Editing content (no code needed)
+
+- **Cabinet portfolios + seed nominees:** `src/content/cabinet.ts`
+- **5-year plan:** `src/content/plan.ts`
+- **Manifesto / vision / principles / legal copy:** `src/content/site.ts`
+
+All seed names are **public-nomination examples for review** — swap freely. Keep the tone non-partisan and avoid anyone in active legal/political controversy.
+
+## Safety & moderation
+
+- Persistent disclaimer + nominee removal contact in the footer (`src/content/site.ts` → `legal`).
+- New nominations are validated server-side (`src/lib/schema.ts`) and stored with a `status` column; set a row's `status` to anything other than `visible` to hide it.
+- No Aadhaar / sensitive PII collected. Voting dedupe is best-effort (per-browser + per-row); phone-OTP is a planned hardening.

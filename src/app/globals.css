@@ -1,26 +1,199 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+
+/*
+  Apni Sarkar — editorial / civic-monument design system.
+  Light "paper" base by default. Saffron + India-green used semantically.
+*/
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Core surfaces */
+  --paper: oklch(0.972 0.008 85);        /* warm off-white */
+  --paper-2: oklch(0.945 0.012 80);      /* slightly deeper paper for layering */
+  --ink: oklch(0.19 0.012 60);           /* near-black, warm */
+  --ink-soft: oklch(0.36 0.012 60);      /* secondary text */
+  --ink-faint: oklch(0.55 0.01 60);      /* tertiary / captions */
+
+  /* Brand accents (semantic, not decorative) */
+  --saffron: oklch(0.71 0.165 52);       /* ~#FF9933 family — action, energy */
+  --saffron-ink: oklch(0.34 0.12 50);    /* readable saffron text on paper */
+  --green: oklch(0.53 0.14 150);         /* ~#138808 — progress, growth */
+  --green-ink: oklch(0.42 0.12 150);
+  --navy: oklch(0.36 0.10 250);          /* chakra-blue adjacent — trust, links */
+
+  /* Mapped roles */
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: oklch(0.99 0.006 85);
+  --card-foreground: var(--ink);
+  --muted: var(--paper-2);
+  --muted-foreground: var(--ink-faint);
+  --primary: var(--saffron);
+  --primary-foreground: oklch(0.16 0.01 60);
+  --secondary: var(--paper-2);
+  --secondary-foreground: var(--ink);
+  --accent: var(--green);
+  --accent-foreground: oklch(0.98 0.01 150);
+  --destructive: oklch(0.55 0.22 27);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.27 0.01 60 / 0.14);
+  --input: oklch(0.27 0.01 60 / 0.2);
+  --ring: var(--saffron);
+  --radius: 0.5rem;
+
+  /* Type scale (fluid) */
+  --text-hero: clamp(2.75rem, 1.2rem + 7.2vw, 7.5rem);
+  --text-display: clamp(2rem, 1rem + 4.4vw, 4.25rem);
+  --text-title: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+  --text-lead: clamp(1.125rem, 1rem + 0.7vw, 1.5rem);
+  --text-base: clamp(1rem, 0.96rem + 0.2vw, 1.0625rem);
+
+  /* Rhythm */
+  --space-section: clamp(4rem, 3rem + 6vw, 9rem);
+
+  /* Motion */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-normal: 600ms;
 }
 
 @theme inline {
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
+  --color-saffron: var(--saffron);
+  --color-saffron-ink: var(--saffron-ink);
+  --color-green: var(--green);
+  --color-green-ink: var(--green-ink);
+  --color-navy: var(--navy);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 4px);
+  --radius-xl: calc(var(--radius) + 10px);
+
+  --font-display: var(--font-fraunces);
+  --font-sans: var(--font-inter);
+  --font-deva: var(--font-deva);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans), system-ui, sans-serif;
+    font-size: var(--text-base);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  h1, h2, h3, h4 {
+    font-family: var(--font-display), Georgia, serif;
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+    font-weight: 600;
+    text-wrap: balance;
+  }
+  ::selection {
+    background: var(--saffron);
+    color: oklch(0.16 0.01 60);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  /* Paper grain / atmosphere */
+  .grain {
+    position: relative;
+  }
+  .grain::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.4;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  }
+
+  .section-pad {
+    padding-top: var(--space-section);
+    padding-bottom: var(--space-section);
+  }
+
+  .container-wide {
+    width: 100%;
+    max-width: 78rem;
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 0.5rem + 3vw, 3rem);
+  }
+
+  .eyebrow {
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--saffron-ink);
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /*
+    Scroll-reveal as progressive enhancement: content is visible by default
+    (no-JS, crawlers, screenshots). Only when JS adds `.js` to <html> do we
+    hide-then-reveal via IntersectionObserver toggling `.is-visible`.
+  */
+  .reveal {
+    transition: opacity var(--duration-normal) var(--ease-out-expo),
+      transform var(--duration-normal) var(--ease-out-expo);
+    will-change: opacity, transform;
+  }
+  .js .reveal:not(.is-visible) {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
 }
