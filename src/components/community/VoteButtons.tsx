@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ChevronUp, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getVoterKey } from "@/lib/voter";
+import { interactiveEnabled } from "@/lib/flags";
 
 interface VoteButtonsProps {
   kind: "nominee" | "comment";
@@ -85,6 +86,24 @@ export function VoteButtons({
     } finally {
       setPending(false);
     }
+  }
+
+  if (!interactiveEnabled) {
+    return (
+      <div
+        title="Voting opens at launch"
+        className={cn(
+          "flex items-center justify-center gap-0.5 select-none opacity-40 cursor-not-allowed",
+          orientation === "vertical" ? "flex-col" : "flex-row"
+        )}
+      >
+        <ChevronUp className="h-5 w-5 text-ink-faint" aria-hidden="true" />
+        <span className="min-w-[1.5rem] text-center text-sm font-bold tabular-nums text-ink">
+          {score}
+        </span>
+        <ChevronDown className="h-5 w-5 text-ink-faint" aria-hidden="true" />
+      </div>
+    );
   }
 
   return (

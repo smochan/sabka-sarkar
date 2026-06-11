@@ -12,6 +12,7 @@ import {
 import { getVoterKey, getStoredName } from "@/lib/voter";
 import { VoteButtons } from "./VoteButtons";
 import { cn } from "@/lib/utils";
+import { interactiveEnabled } from "@/lib/flags";
 
 type Comment = {
   id: number;
@@ -278,12 +279,18 @@ export function Discussion({ slug, nomineeId = null, heading }: DiscussionProps)
         </div>
       </div>
 
-      <div className="mb-8">
-        <Composer
-          onSubmit={(t, n) => post(t, n, null)}
-          placeholder="Make your case. Why this person — or why not? Keep it civil."
-        />
-      </div>
+      {interactiveEnabled ? (
+        <div className="mb-8">
+          <Composer
+            onSubmit={(t, n) => post(t, n, null)}
+            placeholder="Make your case. Why this person — or why not? Keep it civil."
+          />
+        </div>
+      ) : (
+        <div className="mb-8 rounded-xl border border-border bg-card px-5 py-4 text-sm text-ink-faint">
+          Discussion opens at launch. Come back soon.
+        </div>
+      )}
 
       {loading ? (
         <p className="text-sm text-ink-faint">Loading discussion…</p>

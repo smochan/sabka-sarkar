@@ -4,6 +4,7 @@ import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Plus, X, Loader2 } from "lucide-react";
 import type { NomineeRow } from "@/lib/db";
+import { interactiveEnabled } from "@/lib/flags";
 
 interface NominateDialogProps {
   portfolioSlug: string;
@@ -51,6 +52,14 @@ export function NominateDialog({
     } finally {
       setSubmitting(false);
     }
+  }
+
+  if (!interactiveEnabled) {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink-faint opacity-50 cursor-not-allowed" title="Nominations open at launch">
+        <Plus className="h-4 w-4" aria-hidden="true" /> Suggest someone
+      </span>
+    );
   }
 
   return (
