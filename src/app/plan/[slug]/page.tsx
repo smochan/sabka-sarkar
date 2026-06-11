@@ -145,7 +145,7 @@ export default async function PlanSlugPage({ params }: Params) {
                   does it, what it costs, and what could go wrong.&rdquo;
                 </p>
                 <footer className="mt-6 text-sm uppercase tracking-[0.16em] text-paper/50">
-                  Apni Sarkar — evidence standard
+                  Sabka Sarkar — evidence standard
                 </footer>
               </blockquote>
             </Reveal>

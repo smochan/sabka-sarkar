@@ -2,13 +2,13 @@
 // Tone: aspirational, sober, non-partisan. No attacks on named people/parties.
 
 export const site = {
-  name: "Apni Sarkar",
-  nameDeva: "अपनी सरकार",
+  name: "Sabka Sarkar",
+  nameDeva: "सबकी सरकार",
   tagline: "If the best of our generation ran the country.",
   // Used for <title>, OG, etc.
   description:
-    "Apni Sarkar is an aspirational thought experiment: a dream cabinet of India's most accomplished people, chosen by the public. Nominate who you'd trust to run each ministry.",
-  url: process.env.NEXT_PUBLIC_SITE_URL || "https://apni-sarkar.vercel.app",
+    "Sabka Sarkar is an aspirational thought experiment: a dream cabinet of India's most accomplished people, chosen by the public. Nominate who you'd trust to run each ministry.",
+  url: process.env.NEXT_PUBLIC_SITE_URL || "https://sabkasarkar.com",
 };
 
 export const hero = {
@@ -97,8 +97,8 @@ export const join = {
 
 export const legal = {
   disclaimer:
-    "Apni Sarkar is an independent, non-partisan, aspirational civic project and a thought experiment. It is not a real, registered, or claimed government, and it is not affiliated with, endorsed by, or representative of any individual, political party, or organisation unless explicitly stated. Names appearing on this site are public nominations and illustrative examples; they do not imply consent, endorsement, or candidacy by those individuals.",
+    "Sabka Sarkar is an independent, non-partisan, aspirational civic project and a thought experiment. It is not a real, registered, or claimed government, and it is not affiliated with, endorsed by, or representative of any individual, political party, or organisation unless explicitly stated. Names appearing on this site are public nominations and illustrative examples; they do not imply consent, endorsement, or candidacy by those individuals.",
   removalNote:
     "If you are named here and would like to be removed, write to us and we will take it down promptly.",
-  removalEmail: "hello@apni-sarkar.org",
+  removalEmail: "hello@sabkasarkar.com",
 };

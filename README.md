@@ -1,4 +1,4 @@
-# Apni Sarkar — अपनी सरकार
+# Sabka Sarkar — सबकी सरकार
 
 > An aspirational, **non-partisan** civic thought experiment: a "Dream Cabinet of India" chosen by the public.
 > Not a real or claimed government. Not affiliated with any person or party.
@@ -28,9 +28,8 @@ Without a database the site runs in **preview mode**: nominees are shown but vot
 vercel login
 
 # 2. From the project root, create + deploy. Accept the defaults.
-cd /Users/smochan/Documents/projects/apni-sarkar
 vercel            # creates a preview deployment + links the project
-vercel --prod     # promotes to a production URL (e.g. apni-sarkar.vercel.app)
+vercel --prod     # promotes to production
 ```
 
 ### Turn on live voting (Vercel Postgres)

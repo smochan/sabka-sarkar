@@ -298,7 +298,7 @@ export default function SortitionPage() {
               Now you&apos;re ready for the real plan.
             </h2>
             <p className="mx-auto mt-5 max-w-xl text-[length:var(--text-lead)] text-ink-soft">
-              This is where Apni Sarkar is actually headed — and how we get there
+              This is where Sabka Sarkar is actually headed — and how we get there
               without breaking anything.
             </p>
             <Link

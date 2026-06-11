@@ -1,4 +1,4 @@
-// Aspirational five-year plan for each Apni Sarkar portfolio.
+// Aspirational five-year plan for each Sabka Sarkar portfolio.
 //
 // These are GOALS and TARGETS for a NON-PARTISAN civic thought experiment, not
 // promises, forecasts, or claims of fact. No statistics here should be read as

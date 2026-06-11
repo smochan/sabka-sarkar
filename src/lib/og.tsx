@@ -59,7 +59,7 @@ export function ogResponse(opts: {
             color: "#f4efe7",
           }}
         >
-          <div style={{ fontSize: "38px", fontWeight: 700 }}>Apni Sarkar</div>
+          <div style={{ fontSize: "38px", fontWeight: 700 }}>Sabka Sarkar</div>
           <div
             style={{
               fontSize: "26px",

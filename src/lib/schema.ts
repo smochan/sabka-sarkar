@@ -61,6 +61,7 @@ export const commentVoteSchema = z.object({
 
 export const reportSchema = z.object({
   commentId: z.coerce.number().int().positive(),
+  voterKey,
 });
 
 export type NominateInput = z.infer<typeof nominateSchema>;

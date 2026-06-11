@@ -108,6 +108,12 @@ async function ensureSchema(): Promise<void> {
         created_at TEXT NOT NULL DEFAULT (datetime('now')),
         PRIMARY KEY (comment_id, voter_key)
       )`,
+      `CREATE TABLE IF NOT EXISTS comment_reports (
+        comment_id INTEGER NOT NULL,
+        voter_key  TEXT NOT NULL,
+        created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now')),
+        PRIMARY KEY (comment_id, voter_key)
+      )`,
     ],
     "write"
   );
@@ -402,16 +408,23 @@ export async function addComment(args: {
 
 const REPORT_HIDE_THRESHOLD = 4;
 
-export async function reportComment(id: number): Promise<boolean> {
+export async function reportComment(id: number, voterKey: string): Promise<boolean> {
   await ensureSchema();
-  const res = await db().execute({
+  const c = db();
+  const insert = await c.execute({
+    sql: `INSERT INTO comment_reports (comment_id, voter_key) VALUES (?, ?)
+          ON CONFLICT DO NOTHING`,
+    args: [id, voterKey],
+  });
+  if (!insert.rowsAffected) return false;
+  await c.execute({
     sql: `UPDATE comments
           SET reports = reports + 1,
               status = CASE WHEN reports + 1 >= ? THEN 'flagged' ELSE status END
-          WHERE id = ? RETURNING id`,
+          WHERE id = ?`,
     args: [REPORT_HIDE_THRESHOLD, id],
   });
-  return Boolean(res.rows[0]);
+  return true;
 }
 
 // --- moderation ----------------------------------------------------------

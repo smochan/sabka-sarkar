@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "Apni Sarkar — If the best of our generation ran the country.";
+export const alt = "Sabka Sarkar — If the best of our generation ran the country.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -59,7 +59,7 @@ export default function OgImage() {
             color: "#f4efe7",
           }}
         >
-          <div style={{ fontSize: "40px", fontWeight: 700 }}>Apni Sarkar</div>
+          <div style={{ fontSize: "40px", fontWeight: 700 }}>Sabka Sarkar</div>
           <div
             style={{
               fontSize: "28px",

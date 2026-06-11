@@ -9,7 +9,7 @@ import type { SourceCategory } from "@/content/evidence/types";
 import { ExternalLink } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Sources & methodology — Apni Sarkar",
+  title: "Sources & methodology — Sabka Sarkar",
   description:
     "Every number on this site has a receipt. Browse the full source list, organised by category, with links to original documents.",
 };

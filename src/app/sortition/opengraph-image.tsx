@@ -1,6 +1,6 @@
 import { ogResponse, ogSize, ogContentType } from "@/lib/og";
 
-export const alt = "What is sortition? — Apni Sarkar";
+export const alt = "What is sortition? — Sabka Sarkar";
 export const size = ogSize;
 export const contentType = ogContentType;
 

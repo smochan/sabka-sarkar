@@ -12,7 +12,7 @@ import { sortition } from "./sortition";
 export const methodology = {
   title: "How we source our claims",
   intro:
-    "Every statistic, baseline, and target on Apni Sarkar is drawn from a primary or peer-reviewed source. " +
+    "Every statistic, baseline, and target on Sabka Sarkar is drawn from a primary or peer-reviewed source. " +
     "We do not invent numbers. Where estimates conflict, we cite the more conservative figure and note the range. " +
     "This page is a live receipt: as evidence briefs are published, their sources appear here.",
   body: [

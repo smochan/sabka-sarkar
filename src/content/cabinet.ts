@@ -1,4 +1,4 @@
-// Aspirational "Dream Cabinet" portfolios for Apni Sarkar.
+// Aspirational "Dream Cabinet" portfolios for Sabka Sarkar.
 //
 // This is a NON-PARTISAN civic thought experiment. It is NOT a real government,
 // makes no claim to office, and appoints no one. Named figures appear only as
