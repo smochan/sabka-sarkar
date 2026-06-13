@@ -42,14 +42,14 @@ export function CabinetSection() {
     <section
       id="cabinet"
       aria-labelledby="cabinet-heading"
-      className="section-pad border-b border-border bg-paper"
+      className="print-tex section-pad border-b border-border bg-paper"
     >
       <div className="container-wide">
         <Reveal className="max-w-2xl">
           <p className="eyebrow mb-4">The Dream Cabinet</p>
           <h2
             id="cabinet-heading"
-            className="text-[length:var(--text-display)] text-ink"
+            className="poster-title text-[length:var(--text-display)] text-ink"
           >
             Twelve ministries. You decide who leads each one.
           </h2>
@@ -59,7 +59,7 @@ export function CabinetSection() {
           </p>
         </Reveal>
 
-        <div className="mt-14 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+        <div className="mt-14 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
           {cards.map(({ p, nominees }, i) => (
             <Reveal key={p.slug} delay={(i % 3) * 80}>
               <MinistryCard

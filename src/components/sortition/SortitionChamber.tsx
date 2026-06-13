@@ -29,9 +29,11 @@ function buildSeats(total: number): Seat[] {
     const offset = (ring % 2) * (Math.PI / n);
     for (let j = 0; j < n; j++) {
       const angle = (j / n) * Math.PI * 2 + offset;
+      // Round to 3 decimals so server and client serialize identical strings
+      // (raw float trig differs in the last digit → hydration mismatch).
       seats.push({
-        x: cx + radius * Math.cos(angle),
-        y: cy + radius * Math.sin(angle),
+        x: Math.round((cx + radius * Math.cos(angle)) * 1000) / 1000,
+        y: Math.round((cy + radius * Math.sin(angle)) * 1000) / 1000,
         i: idx++,
       });
     }
