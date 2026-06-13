@@ -53,6 +53,16 @@ export default async function NomineePage({ params }: Params) {
                   initialDown={nominee.downvotes}
                 />
               </div>
+              {nominee.image && (
+                <div className="hidden h-28 w-24 shrink-0 overflow-hidden rounded-xl border-2 border-ink bg-card sm:block">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={nominee.image}
+                    alt={nominee.name}
+                    className="h-full w-full object-cover object-top"
+                  />
+                </div>
+              )}
               <div>
                 {portfolio && (
                   <span className="mb-2 inline-flex items-center gap-2 rounded-full bg-saffron/15 px-3 py-1 text-xs font-semibold text-saffron-ink">
@@ -112,6 +122,18 @@ export default async function NomineePage({ params }: Params) {
                 <p className="mt-3 text-xs text-ink-faint">
                   A starting suggestion for review — not an appointment, and not
                   a claim of consent by this person.
+                </p>
+              )}
+              {!nominee.isSeed && nominee.bio && (
+                <p className="mt-3 text-xs text-ink-faint">
+                  Profile drafted from public sources and reviewed before
+                  publishing. A public nomination — not an appointment or a claim
+                  of consent.
+                </p>
+              )}
+              {nominee.imageAttribution && (
+                <p className="mt-3 text-[0.7rem] text-ink-faint">
+                  Photo: {nominee.imageAttribution}
                 </p>
               )}
             </aside>
