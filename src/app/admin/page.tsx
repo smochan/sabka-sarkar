@@ -20,6 +20,7 @@ type Draft = {
   id: number;
   nomineeId: number;
   nomineeName: string;
+  nomineeImage: string;
   portfolioSlug: string;
   bio: string;
   achievements: string[];
@@ -241,12 +242,20 @@ function DraftCard({
   return (
     <li className="rounded-xl border-2 border-ink bg-card p-4">
       <div className="flex flex-wrap items-center gap-2 text-xs text-ink-faint">
+        {draft.nomineeImage && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={draft.nomineeImage}
+            alt={draft.nomineeName}
+            className="h-10 w-9 rounded border border-ink/15 object-cover object-top"
+          />
+        )}
         <span className="font-semibold text-ink">{draft.nomineeName}</span>
         <span>·</span>
         <span>{draft.portfolioSlug}</span>
         <span>· nominee #{draft.nomineeId}</span>
         <span className="ml-auto rounded bg-saffron/15 px-2 py-0.5 font-semibold text-saffron-ink">
-          AI draft · {draft.model}
+          {draft.nomineeImage ? "AI draft + photo" : "AI draft"} · {draft.model}
         </span>
       </div>
 

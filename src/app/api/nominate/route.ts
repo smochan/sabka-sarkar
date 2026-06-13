@@ -1,5 +1,5 @@
 import { NextResponse, after } from "next/server";
-import { addNominee, createDraft, nomineeHasProfile } from "@/lib/db";
+import { addNominee, createDraft, nomineeHasProfile, setNomineeImage } from "@/lib/db";
 import { nominateSchema } from "@/lib/schema";
 import { researchNominee, aiConfigured } from "@/lib/ai";
 import { portfolios } from "@/content/cabinet";
@@ -52,6 +52,18 @@ export async function POST(request: Request) {
           });
           if (res) {
             await createDraft({ nomineeId: nominee.id, ...res });
+            // The portrait is from the same verified Wikipedia subject as the
+            // (confident) bio, so it's safe to set now — the text still waits
+            // for admin approval.
+            if (res.image) {
+              await setNomineeImage(
+                nominee.id,
+                res.image,
+                res.imageAttribution,
+                res.imageLicense,
+                res.sourceUrls[0] ?? ""
+              );
+            }
           }
         } catch (err) {
           console.error("nominee research failed:", err);
