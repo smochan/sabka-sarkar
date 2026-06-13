@@ -21,6 +21,7 @@ export type NomineeRow = {
   downvotes: number;
   score: number;
   isSeed: boolean;
+  status: string; // 'visible' | 'hidden'
   myVote: number; // -1 | 0 | 1
 };
 
@@ -248,6 +249,7 @@ function mapNominee(r: RawNominee, myVote = 0): NomineeRow {
     downvotes,
     score: upvotes - downvotes,
     isSeed: Boolean(r.is_seed),
+    status: String(r.status ?? "visible"),
     myVote: Number(r.my_vote ?? myVote),
   };
 }
@@ -399,13 +401,31 @@ async function applyVote(
   };
 }
 
+// Nominees whose net score falls to this or below are auto-hidden from public
+// view (the community has decisively rejected them). Reversible by an admin.
+const AUTO_HIDE_SCORE = -10;
+
 export async function voteNominee(
   id: number,
   voterKey: string,
   value: 1 | -1
 ): Promise<VoteResult | null> {
   await ensureSchema();
-  return applyVote("nominee_votes", "nominees", "nominee_id", id, voterKey, value);
+  const res = await applyVote(
+    "nominee_votes",
+    "nominees",
+    "nominee_id",
+    id,
+    voterKey,
+    value
+  );
+  if (res && res.upvotes - res.downvotes <= AUTO_HIDE_SCORE) {
+    await db().execute({
+      sql: `UPDATE nominees SET status = 'hidden' WHERE id = ? AND status = 'visible'`,
+      args: [id],
+    });
+  }
+  return res;
 }
 
 export async function voteComment(
@@ -677,4 +697,45 @@ export async function rejectDraft(id: number): Promise<boolean> {
     args: [id],
   });
   return Boolean(res.rows[0]);
+}
+
+// --- nominee moderation --------------------------------------------------
+
+/** All nominees (any status), worst score first — for the admin screen. */
+export async function listNomineesForModeration(): Promise<NomineeRow[]> {
+  await ensureSchema();
+  const { rows } = await db().execute(
+    `SELECT n.*, 0 AS my_vote
+     FROM nominees n
+     ORDER BY (n.status = 'hidden') DESC, (n.upvotes - n.downvotes) ASC, n.name ASC
+     LIMIT 600`
+  );
+  return (rows as unknown as RawNominee[]).map((r) => mapNominee(r));
+}
+
+/** Temporarily hide / restore a nominee. */
+export async function setNomineeStatus(
+  id: number,
+  status: "visible" | "hidden"
+): Promise<boolean> {
+  await ensureSchema();
+  const res = await db().execute({
+    sql: `UPDATE nominees SET status = ? WHERE id = ? RETURNING id`,
+    args: [status, id],
+  });
+  return Boolean(res.rows[0]);
+}
+
+/** Permanently delete a nominee and its votes + drafts. */
+export async function deleteNominee(id: number): Promise<boolean> {
+  await ensureSchema();
+  const res = await db().batch(
+    [
+      { sql: `DELETE FROM nominee_votes WHERE nominee_id = ?`, args: [id] },
+      { sql: `DELETE FROM nominee_drafts WHERE nominee_id = ?`, args: [id] },
+      { sql: `DELETE FROM nominees WHERE id = ? RETURNING id`, args: [id] },
+    ],
+    "write"
+  );
+  return Boolean(res[2]?.rows?.[0]);
 }

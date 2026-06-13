@@ -30,6 +30,19 @@ type Draft = {
   createdAt: string;
 };
 
+type ModNominee = {
+  id: number;
+  name: string;
+  portfolioSlug: string;
+  headline: string;
+  image: string;
+  upvotes: number;
+  downvotes: number;
+  score: number;
+  isSeed: boolean;
+  status: string;
+};
+
 const KEY = "apni-sarkar:adminKey";
 
 export default function AdminPage() {
@@ -37,6 +50,7 @@ export default function AdminPage() {
   const [authed, setAuthed] = useState(false);
   const [comments, setComments] = useState<ModComment[]>([]);
   const [drafts, setDrafts] = useState<Draft[]>([]);
+  const [nominees, setNominees] = useState<ModNominee[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -52,11 +66,18 @@ export default function AdminPage() {
       setComments(json.data as ModComment[]);
       setAuthed(true);
       window.localStorage.setItem(KEY, k);
-      // load AI-profile drafts too (best-effort)
+      // load AI-profile drafts + nominees too (best-effort)
       try {
         const dres = await fetch("/api/admin/drafts", { headers: { "x-admin-key": k } });
         const djson = await dres.json();
         if (dres.ok && djson.success) setDrafts(djson.data as Draft[]);
+      } catch {
+        /* ignore */
+      }
+      try {
+        const nres = await fetch("/api/admin/nominees", { headers: { "x-admin-key": k } });
+        const njson = await nres.json();
+        if (nres.ok && njson.success) setNominees(njson.data as ModNominee[]);
       } catch {
         /* ignore */
       }
@@ -77,6 +98,20 @@ export default function AdminPage() {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-admin-key": key },
       body: JSON.stringify({ id, action, ...edited }),
+    });
+    load(key);
+  }
+
+  async function actNominee(id: number, action: "hide" | "restore" | "delete") {
+    if (
+      action === "delete" &&
+      !window.confirm("Permanently delete this nominee, its votes and drafts? This cannot be undone.")
+    )
+      return;
+    await fetch("/api/admin/nominees", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-admin-key": key },
+      body: JSON.stringify({ id, action }),
     });
     load(key);
   }
@@ -132,7 +167,7 @@ export default function AdminPage() {
       <div className="mb-6 flex items-center justify-between">
         <h1 className="font-display text-3xl text-ink">Moderation</h1>
         <span className="text-sm text-ink-faint">
-          {drafts.length} AI drafts · {comments.length} comments
+          {drafts.length} drafts · {nominees.length} nominees · {comments.length} comments
         </span>
       </div>
 
@@ -155,6 +190,79 @@ export default function AdminPage() {
             ))}
           </ul>
         )}
+      </section>
+
+      {/* Nominees */}
+      <section className="mb-10">
+        <h2 className="mb-1 font-display text-2xl text-ink">Nominees</h2>
+        <p className="mb-3 text-xs text-ink-faint">
+          Hidden automatically at a net score of −10 or worse. Hide is reversible;
+          delete is permanent.
+        </p>
+        <ul className="space-y-2">
+          {nominees.map((n) => (
+            <li
+              key={n.id}
+              className={cn(
+                "flex items-center gap-3 rounded-xl border p-3",
+                n.status === "visible"
+                  ? "border-border bg-card"
+                  : "border-destructive/40 bg-destructive/5"
+              )}
+            >
+              <div className="h-12 w-10 shrink-0 overflow-hidden rounded border border-ink/15 bg-paper-2">
+                {n.image && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={n.image} alt={n.name} className="h-full w-full object-cover object-top" />
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-ink">
+                  {n.name}{" "}
+                  <span className="font-normal text-ink-faint">· {n.portfolioSlug}</span>
+                </p>
+                <p className="text-xs text-ink-faint">
+                  ▲{n.upvotes} ▼{n.downvotes} · net {n.score}
+                  {n.isSeed && " · seed"}
+                </p>
+              </div>
+              <span
+                className={cn(
+                  "rounded px-2 py-0.5 text-xs font-semibold",
+                  n.status === "visible"
+                    ? "bg-green/15 text-green-ink"
+                    : "bg-destructive/15 text-destructive"
+                )}
+              >
+                {n.status}
+              </span>
+              {n.status === "visible" ? (
+                <button
+                  type="button"
+                  onClick={() => actNominee(n.id, "hide")}
+                  className="rounded-md border border-border px-3 py-1 text-xs font-semibold text-ink-soft hover:bg-paper-2"
+                >
+                  Hide
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => actNominee(n.id, "restore")}
+                  className="rounded-md border border-border px-3 py-1 text-xs font-semibold text-green-ink hover:bg-paper-2"
+                >
+                  Restore
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => actNominee(n.id, "delete")}
+                className="rounded-md border border-destructive/40 px-3 py-1 text-xs font-semibold text-destructive hover:bg-destructive/10"
+              >
+                Delete
+              </button>
+            </li>
+          ))}
+        </ul>
       </section>
 
       <h2 className="mb-3 font-display text-2xl text-ink">Comments</h2>
