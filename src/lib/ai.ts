@@ -38,7 +38,71 @@ export type ResearchResult = {
   why: string;
   sourceUrls: string[];
   model: string;
+  image: string;
+  imageAttribution: string;
+  imageLicense: string;
 };
+
+function stripHtml(s: unknown): string {
+  return String(s || "").replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
+}
+
+function isFreeLicense(code: string, shortName: string): boolean {
+  const s = `${code} ${shortName}`.toLowerCase();
+  if (/fair use|non-?free|all rights reserved/.test(s)) return false;
+  return /(^|[^a-z])cc[ -]?(by|0|pd)|public domain|pd-|cc0|attribution|godl|ogl|fal|free art/.test(s);
+}
+
+/** Fetch a free-licensed Wikimedia portrait for a nominee (or null). */
+async function fetchPortrait(
+  name: string
+): Promise<{ image: string; imageAttribution: string; imageLicense: string } | null> {
+  const api = "https://en.wikipedia.org/w/api.php";
+  const commons = "https://commons.wikimedia.org/w/api.php";
+  const clean = name
+    .replace(/^(Dr\.?|Prof\.?|Justice \(Retd\.\)|Justice|Pandit|Smt\.?|Shri)\s+/i, "")
+    .trim();
+
+  const tryTitle = async (t: string) => {
+    const r = await fetch(
+      `${api}?action=query&format=json&redirects=1&prop=pageimages&piprop=thumbnail|name&pithumbsize=480&titles=${encodeURIComponent(t)}`,
+      { headers: { "User-Agent": UA } }
+    );
+    if (!r.ok) return null;
+    const j = await r.json();
+    const p = Object.values(j?.query?.pages || {})[0] as
+      | { thumbnail?: { source?: string }; pageimage?: string }
+      | undefined;
+    if (!p?.thumbnail?.source || !p.pageimage) return null;
+    return { image: p.thumbnail.source, file: `File:${p.pageimage}` };
+  };
+
+  let res = await tryTitle(name);
+  if (!res && clean !== name) res = await tryTitle(clean);
+  if (!res) return null;
+
+  // license + author from Commons
+  const r2 = await fetch(
+    `${commons}?action=query&format=json&prop=imageinfo&iiprop=extmetadata&titles=${encodeURIComponent(res.file)}`,
+    { headers: { "User-Agent": UA } }
+  );
+  if (!r2.ok) return null;
+  const j2 = await r2.json();
+  const cp = Object.values(j2?.query?.pages || {})[0] as
+    | { imageinfo?: Array<{ extmetadata?: Record<string, { value?: string }> }> }
+    | undefined;
+  const ext = cp?.imageinfo?.[0]?.extmetadata || {};
+  const code = ext.License?.value || "";
+  const short = ext.LicenseShortName?.value || "";
+  const artist = stripHtml(ext.Artist?.value) || "Unknown";
+  if (!isFreeLicense(code, short)) return null;
+
+  return {
+    image: res.image,
+    imageAttribution: `${artist} / Wikimedia Commons (${short || code})`,
+    imageLicense: short || code,
+  };
+}
 
 async function wikiExtract(
   name: string
@@ -101,11 +165,23 @@ export async function researchNominee(args: {
   });
 
   if (!object.confident) return null;
+
+  // Best-effort portrait (same Wikipedia subject); fine if absent.
+  let portrait: Awaited<ReturnType<typeof fetchPortrait>> = null;
+  try {
+    portrait = await fetchPortrait(args.name);
+  } catch {
+    portrait = null;
+  }
+
   return {
     bio: object.bio,
     achievements: object.achievements,
     why: object.why,
     sourceUrls: [wiki.url],
     model: typeof m === "string" ? m : MODEL,
+    image: portrait?.image ?? "",
+    imageAttribution: portrait?.imageAttribution ?? "",
+    imageLicense: portrait?.imageLicense ?? "",
   };
 }

@@ -29,6 +29,7 @@ export type DraftRow = {
   id: number;
   nomineeId: number;
   nomineeName: string;
+  nomineeImage: string;
   portfolioSlug: string;
   bio: string;
   achievements: string[];
@@ -551,6 +552,7 @@ function mapDraft(r: RawNominee): DraftRow {
     id: Number(r.id),
     nomineeId: Number(r.nominee_id),
     nomineeName: String(r.nominee_name ?? ""),
+    nomineeImage: String(r.nominee_image ?? ""),
     portfolioSlug: String(r.portfolio_slug ?? ""),
     bio: String(r.bio ?? ""),
     achievements: jsonArray(r.achievements),
@@ -605,10 +607,28 @@ export async function createDraft(args: {
   return res.rows[0] ? Number(res.rows[0].id) : null;
 }
 
+/** Set a nominee's portrait (from AI research; same Wikipedia subject as the bio). */
+export async function setNomineeImage(
+  id: number,
+  image: string,
+  imageAttribution: string,
+  imageLicense: string,
+  sourceUrl: string
+): Promise<void> {
+  await ensureSchema();
+  await db().execute({
+    sql: `UPDATE nominees
+          SET image = ?, image_attribution = ?, image_license = ?, source_url = ?
+          WHERE id = ?`,
+    args: [image, imageAttribution, imageLicense, sourceUrl, id],
+  });
+}
+
 export async function listPendingDrafts(): Promise<DraftRow[]> {
   await ensureSchema();
   const { rows } = await db().execute(
-    `SELECT d.*, n.name AS nominee_name, n.portfolio_slug AS portfolio_slug
+    `SELECT d.*, n.name AS nominee_name, n.image AS nominee_image,
+            n.portfolio_slug AS portfolio_slug
      FROM nominee_drafts d
      JOIN nominees n ON n.id = d.nominee_id
      WHERE d.status = 'pending'
