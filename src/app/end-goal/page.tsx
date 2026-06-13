@@ -66,11 +66,11 @@ export default function EndGoalPage() {
 
         {/* Feasibility */}
         {c.feasibility && (
-          <section className="section-pad border-b border-border bg-ink text-paper">
+          <section className="print-tex section-pad border-b-2 border-ink bg-paper-2">
             <div className="container-wide grid gap-10 lg:grid-cols-[20rem_1fr]">
               <Reveal>
-                <p className="eyebrow mb-4 text-paper/50">Reality check</p>
-                <h2 className="text-[length:var(--text-display)] text-paper">
+                <p className="eyebrow mb-4 text-ink-faint">Reality check</p>
+                <h2 className="poster-title text-[length:var(--text-display)] text-ink">
                   {c.feasibility.title}
                 </h2>
               </Reveal>
@@ -78,7 +78,7 @@ export default function EndGoalPage() {
                 {c.feasibility.body.map((p, i) => (
                   <p
                     key={i}
-                    className="text-[length:var(--text-lead)] leading-relaxed text-paper/75"
+                    className="text-[length:var(--text-lead)] leading-relaxed text-ink-soft"
                   >
                     {p}
                   </p>
@@ -122,10 +122,10 @@ export default function EndGoalPage() {
         </section>
 
         {/* Principles */}
-        <section className="section-pad border-b border-border bg-ink text-paper">
+        <section className="print-tex section-pad border-b-2 border-ink bg-paper-2">
           <div className="container-wide">
             <Reveal>
-              <h2 className="max-w-[20ch] text-[length:var(--text-display)] text-paper">
+              <h2 className="poster-title max-w-[20ch] text-[length:var(--text-display)] text-ink">
                 {c.principles.title}
               </h2>
             </Reveal>
@@ -133,8 +133,8 @@ export default function EndGoalPage() {
               {c.principles.items.map((p, i) => (
                 <li key={p.title}>
                   <Reveal delay={i * 50} className="border-l-2 border-saffron pl-5">
-                    <h3 className="text-xl text-paper">{p.title}</h3>
-                    <p className="mt-2 leading-relaxed text-paper/70">{p.body}</p>
+                    <h3 className="text-xl text-ink">{p.title}</h3>
+                    <p className="mt-2 leading-relaxed text-ink-faint">{p.body}</p>
                   </Reveal>
                 </li>
               ))}

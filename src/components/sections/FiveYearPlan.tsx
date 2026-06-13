@@ -22,14 +22,14 @@ export function FiveYearPlan() {
     <section
       id="plan"
       aria-labelledby="plan-heading"
-      className="section-pad border-b border-border bg-paper-2"
+      className="print-tex section-pad border-b border-border bg-paper-2"
     >
       <div className="container-wide">
         <Reveal className="max-w-2xl">
           <p className="eyebrow mb-4">A 5-year plan for India</p>
           <h2
             id="plan-heading"
-            className="text-[length:var(--text-display)] text-ink"
+            className="poster-title text-[length:var(--text-display)] text-ink"
           >
             What could actually change in five years.
           </h2>
@@ -39,7 +39,7 @@ export function FiveYearPlan() {
           </p>
         </Reveal>
 
-        <div className="mt-14 grid gap-8 lg:grid-cols-[18rem_1fr]">
+        <div className="mt-14 grid grid-cols-1 gap-8 lg:grid-cols-[18rem_1fr]">
           {/* Sector selector */}
           <div
             role="tablist"

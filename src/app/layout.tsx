@@ -1,17 +1,28 @@
 import type { Metadata } from "next";
-import { Fraunces, Inter, Tiro_Devanagari_Hindi } from "next/font/google";
+import { Teko, Yatra_One, Inter, Tiro_Devanagari_Hindi } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { site } from "@/content/site";
 import { Providers } from "@/components/auth/Providers";
+import { SmoothScroll } from "@/components/motion/SmoothScroll";
 import "./globals.css";
 
 const authEnabled = process.env.NEXT_PUBLIC_AUTH_ENABLED === "true";
 
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
-  subsets: ["latin"],
+// Teko — condensed display by Indian Type Foundry; covers Latin + Devanagari,
+// so one family carries both "SABKA SARKAR" and "सबकी सरकार".
+const teko = Teko({
+  variable: "--font-poster",
+  subsets: ["latin", "devanagari"],
+  weight: ["500", "600", "700"],
   display: "swap",
-  axes: ["opsz"],
+});
+
+// Yatra One — hand-painted Mumbai railway-signage display; protest-placard energy.
+const yatraOne = Yatra_One({
+  variable: "--font-placard",
+  subsets: ["latin", "devanagari"],
+  weight: "400",
+  display: "swap",
 });
 
 const inter = Inter({
@@ -57,7 +68,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${fraunces.variable} ${inter.variable} ${tiroDevanagari.variable} h-full`}
+      className={`${teko.variable} ${yatraOne.variable} ${inter.variable} ${tiroDevanagari.variable} h-full`}
     >
       <head>
         <script
@@ -67,6 +78,7 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col bg-paper text-ink">
+        <SmoothScroll />
         {authEnabled ? <Providers>{children}</Providers> : children}
         <Analytics />
       </body>

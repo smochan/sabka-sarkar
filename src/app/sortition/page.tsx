@@ -110,30 +110,30 @@ export default function SortitionPage() {
         </section>
 
         {/* Why small — size comparison */}
-        <section className="section-pad border-b border-border bg-ink text-paper">
+        <section className="print-tex section-pad border-b-2 border-ink bg-paper-2">
           <div className="container-wide grid gap-10 lg:grid-cols-[1fr_22rem] lg:items-center">
             <Reveal>
-              <h2 className="text-[length:var(--text-display)] text-paper">
+              <h2 className="poster-title text-[length:var(--text-display)] text-ink">
                 {c.whySmall.title}
               </h2>
-              <p className="mt-5 max-w-xl text-[length:var(--text-lead)] leading-relaxed text-paper/75">
+              <p className="mt-5 max-w-xl text-[length:var(--text-lead)] leading-relaxed text-ink-soft">
                 {c.whySmall.body}
               </p>
             </Reveal>
             <Reveal className="space-y-4">
-              <div className="rounded-xl border border-paper/15 p-5">
-                <div className="font-display text-5xl text-paper/50">
+              <div className="rounded-xl border border-ink/15 p-5">
+                <div className="font-display text-5xl text-ink-faint">
                   {c.whySmall.currentCount}
                 </div>
-                <p className="mt-1 text-sm text-paper/60">
+                <p className="mt-1 text-sm text-ink-faint">
                   {c.whySmall.currentLabel}
                 </p>
               </div>
-              <div className="rounded-xl border border-saffron bg-saffron/10 p-5">
-                <div className="font-display text-5xl text-saffron">
+              <div className="rounded-xl border border-saffron bg-saffron/15 p-5">
+                <div className="font-display text-5xl text-saffron-ink">
                   {c.whySmall.proposedCount}
                 </div>
-                <p className="mt-1 text-sm text-paper/80">
+                <p className="mt-1 text-sm text-ink-soft">
                   {c.whySmall.proposedLabel}
                 </p>
               </div>

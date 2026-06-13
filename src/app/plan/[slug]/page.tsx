@@ -135,16 +135,16 @@ export default async function PlanSlugPage({ params }: Params) {
           </div>
         </section>
 
-        {/* Pull-quote band — dark, no citations */}
-        <section className="grain section-pad border-b border-border bg-ink">
+        {/* Pull-quote band */}
+        <section className="grain print-tex section-pad border-b-2 border-ink bg-paper-2">
           <div className="container-wide max-w-3xl">
             <Reveal>
               <blockquote>
-                <p className="text-[length:var(--text-display)] font-display leading-snug text-paper">
+                <p className="text-[length:var(--text-display)] font-display leading-snug text-ink">
                   &ldquo;Every number here has a receipt. Every proposal names who
                   does it, what it costs, and what could go wrong.&rdquo;
                 </p>
-                <footer className="mt-6 text-sm uppercase tracking-[0.16em] text-paper/50">
+                <footer className="mt-6 text-sm uppercase tracking-[0.16em] text-ink-faint">
                   Sabka Sarkar — evidence standard
                 </footer>
               </blockquote>

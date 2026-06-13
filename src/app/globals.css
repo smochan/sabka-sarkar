@@ -7,24 +7,27 @@
 */
 
 :root {
-  /* Core surfaces */
-  --paper: oklch(0.972 0.008 85);        /* warm off-white */
-  --paper-2: oklch(0.945 0.012 80);      /* slightly deeper paper for layering */
-  --ink: oklch(0.19 0.012 60);           /* near-black, warm */
-  --ink-soft: oklch(0.36 0.012 60);      /* secondary text */
-  --ink-faint: oklch(0.55 0.01 60);      /* tertiary / captions */
+  /* Core surfaces — light-only, crisp & cool. Deliberately NOT the warm
+     Claude cream: clean cool-white paper + a cool blue-grey layer that ties
+     to the Ashoka-blue accent. */
+  --paper: oklch(0.993 0.001 255);       /* clean cool near-white */
+  --paper-2: oklch(0.952 0.005 255);     /* cool blue-grey layer */
+  --ink: oklch(0.16 0.008 60);           /* true near-black */
+  --ink-soft: oklch(0.33 0.012 60);      /* secondary text */
+  --ink-faint: oklch(0.48 0.012 60);     /* tertiary / captions */
 
-  /* Brand accents (semantic, not decorative) */
-  --saffron: oklch(0.71 0.165 52);       /* ~#FF9933 family — action, energy */
-  --saffron-ink: oklch(0.34 0.12 50);    /* readable saffron text on paper */
-  --green: oklch(0.53 0.14 150);         /* ~#138808 — progress, growth */
-  --green-ink: oklch(0.42 0.12 150);
-  --navy: oklch(0.36 0.10 250);          /* chakra-blue adjacent — trust, links */
+  /* Brand accents — full Indian tricolor + Ashoka navy. */
+  --saffron: oklch(0.745 0.195 52);      /* ~#ff8a1f — punchier orange */
+  --saffron-ink: oklch(0.45 0.16 48);    /* readable burnt-orange text on white */
+  --green: oklch(0.50 0.155 150);        /* ~#0f7a2e — deeper India green */
+  --green-ink: oklch(0.42 0.14 150);
+  --navy: oklch(0.40 0.16 262);          /* Ashoka Chakra blue — the flag's true blue */
+  --navy-ink: oklch(0.36 0.15 262);      /* readable navy text/links on white */
 
   /* Mapped roles */
   --background: var(--paper);
   --foreground: var(--ink);
-  --card: oklch(0.99 0.006 85);
+  --card: oklch(1 0 0);
   --card-foreground: var(--ink);
   --muted: var(--paper-2);
   --muted-foreground: var(--ink-faint);
@@ -41,10 +44,10 @@
   --ring: var(--saffron);
   --radius: 0.5rem;
 
-  /* Type scale (fluid) */
-  --text-hero: clamp(2.75rem, 1.2rem + 7.2vw, 7.5rem);
-  --text-display: clamp(2rem, 1rem + 4.4vw, 4.25rem);
-  --text-title: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+  /* Type scale (fluid). Tuned for Teko (condensed) — runs larger than serif. */
+  --text-hero: clamp(3.5rem, 1.4rem + 9vw, 9.5rem);
+  --text-display: clamp(2.5rem, 1.2rem + 5.4vw, 5.5rem);
+  --text-title: clamp(1.75rem, 1.1rem + 2.4vw, 3rem);
   --text-lead: clamp(1.125rem, 1rem + 0.7vw, 1.5rem);
   --text-base: clamp(1rem, 0.96rem + 0.2vw, 1.0625rem);
 
@@ -67,6 +70,7 @@
   --color-green: var(--green);
   --color-green-ink: var(--green-ink);
   --color-navy: var(--navy);
+  --color-navy-ink: var(--navy-ink);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -90,9 +94,13 @@
   --radius-lg: calc(var(--radius) + 4px);
   --radius-xl: calc(var(--radius) + 10px);
 
-  --font-display: var(--font-fraunces);
+  --font-poster: var(--font-poster);
+  --font-placard: var(--font-placard);
   --font-sans: var(--font-inter);
   --font-deva: var(--font-deva);
+  /* Alias: existing `font-display` utilities across the app now render in
+     the Teko poster face, keeping the whole product on one display voice. */
+  --font-display: var(--font-poster);
 }
 
 @layer base {
@@ -113,9 +121,9 @@
     text-rendering: optimizeLegibility;
   }
   h1, h2, h3, h4 {
-    font-family: var(--font-display), Georgia, serif;
-    line-height: 1.02;
-    letter-spacing: -0.02em;
+    font-family: var(--font-poster), "Arial Narrow", system-ui, sans-serif;
+    line-height: 0.98;
+    letter-spacing: 0.01em;
     font-weight: 600;
     text-wrap: balance;
   }
@@ -165,6 +173,104 @@
     text-wrap: balance;
   }
 
+  /* ---- Editorial-agitprop language ------------------------------------ */
+
+  /* Oversized condensed poster headline (Teko). Uppercase, tight. */
+  .poster-title {
+    font-family: var(--font-poster), "Arial Narrow", system-ui, sans-serif;
+    text-transform: uppercase;
+    font-weight: 700;
+    line-height: 0.9;
+    letter-spacing: 0.005em;
+    text-wrap: balance;
+  }
+
+  /* Hand-painted placard accent (Yatra One). */
+  .placard {
+    font-family: var(--font-placard), var(--font-poster), system-ui, sans-serif;
+    line-height: 1.05;
+  }
+
+  /* Risograph misregistration: layered saffron + green offset. Use sparingly. */
+  .riso-offset {
+    text-shadow:
+      0.04em 0.035em 0 var(--saffron),
+      -0.03em -0.025em 0 color-mix(in oklab, var(--green) 85%, transparent);
+  }
+  .riso-offset-dark {
+    text-shadow:
+      0.04em 0.035em 0 var(--saffron),
+      -0.03em -0.025em 0 color-mix(in oklab, var(--green) 70%, black);
+  }
+
+  /* Halftone dot field — pairs with .grain. Tune size via --dot. */
+  .halftone {
+    --dot: 10px;
+    background-image: radial-gradient(
+      currentColor 18%,
+      transparent 19%
+    );
+    background-size: var(--dot) var(--dot);
+  }
+
+  /* Subtle newsprint print texture for light sections (faint ink dots). */
+  .print-tex {
+    position: relative;
+  }
+  .print-tex::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.045;
+    background-image: radial-gradient(var(--ink) 0.6px, transparent 0.7px);
+    background-size: 5px 5px;
+  }
+
+  /* Heavy printed rule. */
+  .rule-heavy {
+    border-width: 3px;
+    border-color: var(--ink);
+  }
+
+  /* Rotated, bordered protest stamp. */
+  .stamp {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    border: 2px solid currentColor;
+    padding: 0.3em 0.7em;
+    font-family: var(--font-poster), system-ui, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-weight: 600;
+    line-height: 1;
+    transform: rotate(-4deg);
+  }
+
+  /* Oversized zine index numeral. */
+  .index-num {
+    font-family: var(--font-poster), system-ui, sans-serif;
+    font-weight: 700;
+    line-height: 0.8;
+    letter-spacing: 0;
+    font-variant-numeric: lining-nums;
+  }
+
+  /* Marquee ticker track. */
+  .marquee-track {
+    display: inline-flex;
+    white-space: nowrap;
+    will-change: transform;
+    animation: marquee var(--marquee-duration, 40s) linear infinite;
+  }
+  .marquee-track[data-reverse="true"] {
+    animation-direction: reverse;
+  }
+  .marquee:hover .marquee-track {
+    animation-play-state: paused;
+  }
+
   /*
     Scroll-reveal as progressive enhancement: content is visible by default
     (no-JS, crawlers, screenshots). Only when JS adds `.js` to <html> do we
@@ -179,16 +285,56 @@
     opacity: 0;
     transform: translateY(24px);
   }
+
+  /* Agitprop reveal variants (same .is-visible gate) */
+  .js .reveal-wipe:not(.is-visible) {
+    clip-path: inset(0 100% 0 0);
+  }
+  .reveal-wipe {
+    transition: clip-path var(--duration-normal) var(--ease-out-expo);
+  }
+  .js .reveal-left:not(.is-visible) {
+    opacity: 0;
+    transform: translateX(-32px);
+  }
+  .js .reveal-right:not(.is-visible) {
+    opacity: 0;
+    transform: translateX(32px);
+  }
+}
+
+/* Marquee ticker */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* Ashoka Chakra slow rotation */
+@keyframes chakra-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.chakra-spin {
+  animation: chakra-spin 80s linear infinite;
+  transform-origin: center;
 }
 
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
   }
-  .reveal {
+  .reveal,
+  .reveal-wipe,
+  .reveal-left,
+  .reveal-right {
     opacity: 1 !important;
     transform: none !important;
+    clip-path: none !important;
     transition: none !important;
+  }
+  .chakra-spin,
+  .marquee-track {
+    animation: none !important;
   }
   *,
   *::before,
