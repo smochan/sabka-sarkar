@@ -32,7 +32,7 @@ Project → Settings → Environment Variables → **Production** (and Preview i
 | `TURSO_DATABASE_URL` | `libsql://…` | Database |
 | `TURSO_AUTH_TOKEN` | `…` | Database auth |
 | `ADMIN_KEY` | a long random string | Unlocks `/admin` moderation + AI-draft review |
-| `AI_GATEWAY_API_KEY` | from Vercel AI Gateway | AI nominee research (see Phase 2) — optional until you enable that feature |
+| `GEMINI_API_KEY` | Google AI Studio (free) | AI nominee research — **free tier is plenty**. Optional. App falls back across Groq / DeepSeek / Anthropic / AI Gateway if you set those instead. |
 
 ## 3. Redeploy
 

@@ -1,20 +1,43 @@
 import { generateObject } from "ai";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { createGroq } from "@ai-sdk/groq";
+import { createDeepSeek } from "@ai-sdk/deepseek";
 import { anthropic } from "@ai-sdk/anthropic";
 import { z } from "zod";
 import type { LanguageModel } from "ai";
 
-// Latest Claude by default; override with AI_MODEL. Prefer the Vercel AI Gateway
-// when its key is present (recommended on Vercel), else call Anthropic directly.
-const MODEL = process.env.AI_MODEL || "claude-sonnet-4-6";
+// Cost-first multi-provider chain. The research task is light (summarise a
+// Wikipedia extract), so we prefer FREE/cheap models and fall back across
+// whatever keys are configured. Order: free → cheap → paid. Set AI_GATEWAY_API_KEY
+// to route everything through the Vercel AI Gateway instead.
+type Provider = { id: string; model: () => LanguageModel };
 
-export function aiConfigured(): boolean {
-  return Boolean(process.env.AI_GATEWAY_API_KEY || process.env.ANTHROPIC_API_KEY);
+function availableProviders(): Provider[] {
+  const list: Provider[] = [];
+  if (process.env.AI_GATEWAY_API_KEY) {
+    const m = process.env.AI_MODEL || "google/gemini-2.5-flash";
+    list.push({ id: m, model: () => m });
+  }
+  if (process.env.GEMINI_API_KEY) {
+    const g = createGoogleGenerativeAI({ apiKey: process.env.GEMINI_API_KEY });
+    list.push({ id: "gemini-2.5-flash", model: () => g("gemini-2.5-flash") }); // free tier
+  }
+  if (process.env.GROQ_API_KEY) {
+    const gr = createGroq({ apiKey: process.env.GROQ_API_KEY });
+    list.push({ id: "groq/llama-3.3-70b", model: () => gr("llama-3.3-70b-versatile") }); // free tier
+  }
+  if (process.env.DEEPSEEK_API_KEY) {
+    const ds = createDeepSeek({ apiKey: process.env.DEEPSEEK_API_KEY });
+    list.push({ id: "deepseek-chat", model: () => ds("deepseek-chat") }); // very cheap
+  }
+  if (process.env.ANTHROPIC_API_KEY) {
+    list.push({ id: "claude-sonnet-4-6", model: () => anthropic("claude-sonnet-4-6") });
+  }
+  return list;
 }
 
-function model(): LanguageModel | null {
-  if (process.env.AI_GATEWAY_API_KEY) return `anthropic/${MODEL}`;
-  if (process.env.ANTHROPIC_API_KEY) return anthropic(MODEL);
-  return null;
+export function aiConfigured(): boolean {
+  return availableProviders().length > 0;
 }
 
 const UA = "SabkaSarkar/1.0 (civic non-profit; hello@sabkasarkar.com)";
@@ -151,15 +174,12 @@ export async function researchNominee(args: {
   ministry: string;
   mandate: string;
 }): Promise<ResearchResult | null> {
-  const m = model();
-  if (!m) return null;
+  const providers = availableProviders();
+  if (!providers.length) return null;
   const wiki = await wikiExtract(args.name);
   if (!wiki) return null;
 
-  const { object } = await generateObject({
-    model: m,
-    schema: profileSchema,
-    prompt:
+  const prompt =
       `You are drafting a NEUTRAL, factual profile for a non-partisan Indian civic ` +
       `site. Use ONLY facts supported by the source text below — never invent ` +
       `claims, awards, or numbers.\n\n` +
@@ -171,10 +191,22 @@ export async function researchNominee(args: {
       `Set confident=false ONLY if the source does not actually describe a real, ` +
       `identifiable person (e.g. a disambiguation page or clearly the wrong ` +
       `subject) — a short but clear description IS sufficient, so prefer to draft. ` +
-      `"why" connects their real, sourced record to the ministry's mandate.`,
-  });
+      `"why" connects their real, sourced record to the ministry's mandate.`;
 
-  if (!object.confident) return null;
+  // Try providers cheapest-first; fall back if one errors or is rate-limited.
+  let object: z.infer<typeof profileSchema> | null = null;
+  let usedModel = "";
+  for (const p of providers) {
+    try {
+      const r = await generateObject({ model: p.model(), schema: profileSchema, prompt });
+      object = r.object;
+      usedModel = p.id;
+      break;
+    } catch (err) {
+      console.error(`AI provider ${p.id} failed, trying next:`, err);
+    }
+  }
+  if (!object || !object.confident) return null;
 
   // Best-effort portrait (same Wikipedia subject); fine if absent.
   let portrait: Awaited<ReturnType<typeof fetchPortrait>> = null;
@@ -189,7 +221,7 @@ export async function researchNominee(args: {
     achievements: object.achievements,
     why: object.why,
     sourceUrls: [wiki.url],
-    model: typeof m === "string" ? m : MODEL,
+    model: usedModel,
     image: portrait?.image ?? "",
     imageAttribution: portrait?.imageAttribution ?? "",
     imageLicense: portrait?.imageLicense ?? "",
