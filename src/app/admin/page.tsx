@@ -16,12 +16,26 @@ type ModComment = {
   createdAt: string;
 };
 
+type Draft = {
+  id: number;
+  nomineeId: number;
+  nomineeName: string;
+  portfolioSlug: string;
+  bio: string;
+  achievements: string[];
+  why: string;
+  sourceUrls: string[];
+  model: string;
+  createdAt: string;
+};
+
 const KEY = "apni-sarkar:adminKey";
 
 export default function AdminPage() {
   const [key, setKey] = useState("");
   const [authed, setAuthed] = useState(false);
   const [comments, setComments] = useState<ModComment[]>([]);
+  const [drafts, setDrafts] = useState<Draft[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -37,6 +51,14 @@ export default function AdminPage() {
       setComments(json.data as ModComment[]);
       setAuthed(true);
       window.localStorage.setItem(KEY, k);
+      // load AI-profile drafts too (best-effort)
+      try {
+        const dres = await fetch("/api/admin/drafts", { headers: { "x-admin-key": k } });
+        const djson = await dres.json();
+        if (dres.ok && djson.success) setDrafts(djson.data as Draft[]);
+      } catch {
+        /* ignore */
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed");
       setAuthed(false);
@@ -44,6 +66,19 @@ export default function AdminPage() {
       setLoading(false);
     }
   }, []);
+
+  async function actDraft(
+    id: number,
+    action: "approve" | "reject",
+    edited?: { bio: string; achievements: string[]; why: string }
+  ) {
+    await fetch("/api/admin/drafts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-admin-key": key },
+      body: JSON.stringify({ id, action, ...edited }),
+    });
+    load(key);
+  }
 
   useEffect(() => {
     const saved = window.localStorage.getItem(KEY);
@@ -95,8 +130,33 @@ export default function AdminPage() {
     <main className="container-wide py-10">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="font-display text-3xl text-ink">Moderation</h1>
-        <span className="text-sm text-ink-faint">{comments.length} comments</span>
+        <span className="text-sm text-ink-faint">
+          {drafts.length} AI drafts · {comments.length} comments
+        </span>
       </div>
+
+      {/* AI profile drafts awaiting review */}
+      <section className="mb-10">
+        <h2 className="mb-3 font-display text-2xl text-ink">
+          AI profile drafts — review before publishing
+        </h2>
+        {drafts.length === 0 ? (
+          <p className="text-sm text-ink-faint">No drafts pending.</p>
+        ) : (
+          <ul className="space-y-4">
+            {drafts.map((d) => (
+              <DraftCard
+                key={d.id}
+                draft={d}
+                onApprove={(edited) => actDraft(d.id, "approve", edited)}
+                onReject={() => actDraft(d.id, "reject")}
+              />
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <h2 className="mb-3 font-display text-2xl text-ink">Comments</h2>
       <ul className="space-y-3">
         {comments.map((c) => (
           <li
@@ -162,5 +222,90 @@ export default function AdminPage() {
         ))}
       </ul>
     </main>
+  );
+}
+
+function DraftCard({
+  draft,
+  onApprove,
+  onReject,
+}: {
+  draft: Draft;
+  onApprove: (edited: { bio: string; achievements: string[]; why: string }) => void;
+  onReject: () => void;
+}) {
+  const [bio, setBio] = useState(draft.bio);
+  const [achievements, setAchievements] = useState(draft.achievements.join("\n"));
+  const [why, setWhy] = useState(draft.why);
+
+  return (
+    <li className="rounded-xl border-2 border-ink bg-card p-4">
+      <div className="flex flex-wrap items-center gap-2 text-xs text-ink-faint">
+        <span className="font-semibold text-ink">{draft.nomineeName}</span>
+        <span>·</span>
+        <span>{draft.portfolioSlug}</span>
+        <span>· nominee #{draft.nomineeId}</span>
+        <span className="ml-auto rounded bg-saffron/15 px-2 py-0.5 font-semibold text-saffron-ink">
+          AI draft · {draft.model}
+        </span>
+      </div>
+
+      <label className="mt-3 block text-xs font-semibold uppercase tracking-wide text-ink-soft">Bio</label>
+      <textarea
+        value={bio}
+        onChange={(e) => setBio(e.target.value)}
+        rows={3}
+        className="mt-1 w-full rounded-md border border-input bg-paper px-3 py-2 text-sm text-ink outline-none focus:border-saffron"
+      />
+      <label className="mt-3 block text-xs font-semibold uppercase tracking-wide text-ink-soft">Achievements (one per line)</label>
+      <textarea
+        value={achievements}
+        onChange={(e) => setAchievements(e.target.value)}
+        rows={4}
+        className="mt-1 w-full rounded-md border border-input bg-paper px-3 py-2 text-sm text-ink outline-none focus:border-saffron"
+      />
+      <label className="mt-3 block text-xs font-semibold uppercase tracking-wide text-ink-soft">Why this ministry</label>
+      <textarea
+        value={why}
+        onChange={(e) => setWhy(e.target.value)}
+        rows={2}
+        className="mt-1 w-full rounded-md border border-input bg-paper px-3 py-2 text-sm text-ink outline-none focus:border-saffron"
+      />
+
+      {draft.sourceUrls.length > 0 && (
+        <p className="mt-3 text-xs text-ink-faint">
+          Sources:{" "}
+          {draft.sourceUrls.map((u, i) => (
+            <a key={i} href={u} target="_blank" rel="noopener noreferrer" className="underline hover:text-saffron-ink">
+              {new URL(u).hostname.replace(/^www\./, "")}
+              {i < draft.sourceUrls.length - 1 ? ", " : ""}
+            </a>
+          ))}
+        </p>
+      )}
+
+      <div className="mt-4 flex gap-2">
+        <button
+          type="button"
+          onClick={() =>
+            onApprove({
+              bio: bio.trim(),
+              achievements: achievements.split("\n").map((s) => s.trim()).filter(Boolean),
+              why: why.trim(),
+            })
+          }
+          className="rounded-md bg-ink px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-paper hover:-translate-y-0.5"
+        >
+          Approve &amp; publish
+        </button>
+        <button
+          type="button"
+          onClick={onReject}
+          className="rounded-md border-2 border-destructive/50 px-4 py-1.5 text-xs font-semibold text-destructive hover:bg-destructive/10"
+        >
+          Reject
+        </button>
+      </div>
+    </li>
   );
 }
