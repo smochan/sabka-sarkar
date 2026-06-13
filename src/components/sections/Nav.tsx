@@ -7,7 +7,7 @@ import { TricolorRail } from "@/components/TricolorRail";
 const authEnabled = process.env.NEXT_PUBLIC_AUTH_ENABLED === "true";
 
 const links = [
-  { href: "/#cabinet", label: "The Cabinet" },
+  { href: "/cabinet", label: "The Cabinet" },
   { href: "/#plan", label: "The Plan" },
   { href: "/sortition", label: "The Reform" },
   { href: "/end-goal", label: "End Goal" },
@@ -48,7 +48,7 @@ export function Nav() {
           </ul>
           {authEnabled && <SignInButton />}
           <Link
-            href="/#cabinet"
+            href="/cabinet"
             className="inline-flex h-9 items-center rounded-md bg-ink px-4 text-sm font-semibold uppercase tracking-wide text-paper transition-transform hover:-translate-y-0.5"
           >
             Nominate

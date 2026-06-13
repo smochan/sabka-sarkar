@@ -34,7 +34,7 @@ export function JoinCta() {
 
           <div className="mt-10 flex flex-col items-center gap-6">
             <Link
-              href="#cabinet"
+              href="/cabinet"
               className="inline-flex h-12 items-center justify-center rounded-md bg-ink px-8 text-base font-semibold uppercase tracking-wide text-paper transition-transform hover:-translate-y-0.5"
             >
               {join.cta}

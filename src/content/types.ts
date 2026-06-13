@@ -106,4 +106,12 @@ export type NomineeProfile = {
   achievements: string[];
   /** 1-2 sentences: why this person fits this ministry. */
   why: string;
+  /** portrait URL (e.g. Wikimedia Commons) — optional, merged from nomineeImages. */
+  image?: string;
+  /** human-readable image credit (author + license). */
+  imageAttribution?: string;
+  /** license short code, e.g. "CC BY-SA 4.0". */
+  imageLicense?: string;
+  /** reference URL (e.g. Wikipedia page). */
+  sourceUrl?: string;
 };

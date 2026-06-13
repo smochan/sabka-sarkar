@@ -110,7 +110,7 @@ export function Hero() {
 
         <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
           <Link
-            href="#cabinet"
+            href="/cabinet"
             className="inline-flex h-12 items-center justify-center rounded-md bg-saffron px-7 text-base font-semibold uppercase tracking-wide text-[oklch(0.16_0.01_60)] shadow-sm transition-transform hover:-translate-y-0.5"
           >
             {hero.ctaPrimary}
