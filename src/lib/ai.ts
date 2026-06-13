@@ -107,19 +107,27 @@ async function fetchPortrait(
 async function wikiExtract(
   name: string
 ): Promise<{ extract: string; url: string } | null> {
+  // Full intro section (several paragraphs) — far richer than the 2-sentence
+  // REST summary, so even short-stub subjects give the model enough to work with.
   const tryTitle = async (t: string) => {
     const r = await fetch(
-      `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(t)}`,
+      `https://en.wikipedia.org/w/api.php?action=query&format=json&redirects=1` +
+        `&prop=extracts|info&exintro=1&explaintext=1&inprop=url&titles=${encodeURIComponent(t)}`,
       { headers: { "User-Agent": UA } }
     );
     if (!r.ok) return null;
     const j = await r.json();
-    if (j.type === "disambiguation" || !j.extract) return null;
+    const p = Object.values(j?.query?.pages || {})[0] as
+      | { missing?: string; extract?: string; fullurl?: string }
+      | undefined;
+    if (!p || p.missing !== undefined || !p.extract) return null;
+    const extract = String(p.extract).trim();
+    if (extract.length < 40 || /\bmay refer to\b/i.test(extract.slice(0, 200))) {
+      return null; // empty or a disambiguation page
+    }
     return {
-      extract: String(j.extract),
-      url:
-        j.content_urls?.desktop?.page ||
-        `https://en.wikipedia.org/wiki/${encodeURIComponent(t)}`,
+      extract,
+      url: p.fullurl || `https://en.wikipedia.org/wiki/${encodeURIComponent(t)}`,
     };
   };
   let res = await tryTitle(name);
@@ -159,8 +167,10 @@ export async function researchNominee(args: {
       `Nominated to lead: ${args.ministry} — ${args.mandate}\n\n` +
       `Source (Wikipedia extract):\n"""${wiki.extract}"""\n\n` +
       `Rules: third person; no praise, adjectives of opinion, or political ` +
-      `framing; achievements must be concrete and supported by the source; if the ` +
-      `source is thin or ambiguous about this exact person, set confident=false. ` +
+      `framing; achievements must be concrete and supported by the source. ` +
+      `Set confident=false ONLY if the source does not actually describe a real, ` +
+      `identifiable person (e.g. a disambiguation page or clearly the wrong ` +
+      `subject) — a short but clear description IS sufficient, so prefer to draft. ` +
       `"why" connects their real, sourced record to the ministry's mandate.`,
   });
 
