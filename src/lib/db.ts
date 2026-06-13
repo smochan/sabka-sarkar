@@ -581,6 +581,14 @@ export async function createDraft(args: {
   model: string;
 }): Promise<number | null> {
   await ensureSchema();
+  // Idempotent: if a pending draft already exists for this nominee, reuse it
+  // (re-nominating the same person must not pile up duplicate review items).
+  const existing = await db().execute({
+    sql: `SELECT id FROM nominee_drafts WHERE nominee_id = ? AND status = 'pending' LIMIT 1`,
+    args: [args.nomineeId],
+  });
+  if (existing.rows[0]) return Number(existing.rows[0].id);
+
   const res = await db().execute({
     sql: `INSERT INTO nominee_drafts
             (nominee_id, bio, achievements, why, source_urls, model)
