@@ -1,6 +1,7 @@
 import { createClient, type Client } from "@libsql/client";
 import { portfolios } from "@/content/cabinet";
 import { profiles } from "@/content/profiles";
+import { nomineeImages } from "@/content/nomineeImages";
 
 // --- types ---------------------------------------------------------------
 
@@ -12,11 +13,30 @@ export type NomineeRow = {
   bio: string;
   achievements: string[];
   why: string;
+  image: string; // portrait URL ("" if none)
+  imageAttribution: string;
+  imageLicense: string;
+  sourceUrl: string; // reference (e.g. Wikipedia page)
   upvotes: number;
   downvotes: number;
   score: number;
   isSeed: boolean;
   myVote: number; // -1 | 0 | 1
+};
+
+// AI-researched profile draft awaiting admin review (never auto-published).
+export type DraftRow = {
+  id: number;
+  nomineeId: number;
+  nomineeName: string;
+  portfolioSlug: string;
+  bio: string;
+  achievements: string[];
+  why: string;
+  sourceUrls: string[];
+  model: string;
+  status: string; // 'pending' | 'approved' | 'rejected'
+  createdAt: string;
 };
 
 export type CommentRow = {
@@ -69,6 +89,10 @@ async function ensureSchema(): Promise<void> {
         bio TEXT NOT NULL DEFAULT '',
         achievements TEXT NOT NULL DEFAULT '[]',
         why TEXT NOT NULL DEFAULT '',
+        image TEXT NOT NULL DEFAULT '',
+        image_attribution TEXT NOT NULL DEFAULT '',
+        image_license TEXT NOT NULL DEFAULT '',
+        source_url TEXT NOT NULL DEFAULT '',
         upvotes INTEGER NOT NULL DEFAULT 0,
         downvotes INTEGER NOT NULL DEFAULT 0,
         is_seed INTEGER NOT NULL DEFAULT 0,
@@ -77,6 +101,19 @@ async function ensureSchema(): Promise<void> {
       )`,
       `CREATE UNIQUE INDEX IF NOT EXISTS nominees_slug_name
         ON nominees(portfolio_slug, lower(name))`,
+      `CREATE TABLE IF NOT EXISTS nominee_drafts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nominee_id INTEGER NOT NULL,
+        bio TEXT NOT NULL DEFAULT '',
+        achievements TEXT NOT NULL DEFAULT '[]',
+        why TEXT NOT NULL DEFAULT '',
+        source_urls TEXT NOT NULL DEFAULT '[]',
+        model TEXT NOT NULL DEFAULT '',
+        status TEXT NOT NULL DEFAULT 'pending',
+        created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      )`,
+      `CREATE INDEX IF NOT EXISTS nominee_drafts_status
+        ON nominee_drafts(status, created_at)`,
       `CREATE TABLE IF NOT EXISTS nominee_votes (
         nominee_id INTEGER NOT NULL,
         voter_key TEXT NOT NULL,
@@ -117,8 +154,28 @@ async function ensureSchema(): Promise<void> {
     ],
     "write"
   );
+  await migrateColumns();
   schemaReady = true;
   await seedIfEmpty();
+}
+
+// Add columns that may be missing on a pre-existing nominees table
+// (CREATE TABLE IF NOT EXISTS won't alter an existing table).
+async function migrateColumns(): Promise<void> {
+  const c = db();
+  const info = await c.execute("PRAGMA table_info(nominees)");
+  const have = new Set(info.rows.map((r) => String(r.name)));
+  const wanted: Array<[string, string]> = [
+    ["image", "TEXT NOT NULL DEFAULT ''"],
+    ["image_attribution", "TEXT NOT NULL DEFAULT ''"],
+    ["image_license", "TEXT NOT NULL DEFAULT ''"],
+    ["source_url", "TEXT NOT NULL DEFAULT ''"],
+  ];
+  for (const [col, def] of wanted) {
+    if (!have.has(col)) {
+      await c.execute(`ALTER TABLE nominees ADD COLUMN ${col} ${def}`);
+    }
+  }
 }
 
 function profileFor(slug: string, name: string) {
@@ -136,10 +193,12 @@ async function seedIfEmpty(): Promise<void> {
   for (const p of portfolios) {
     for (const n of p.seedNominees) {
       const prof = profileFor(p.slug, n.name);
+      const img = nomineeImages[n.name];
       stmts.push({
         sql: `INSERT INTO nominees
-                (portfolio_slug, name, headline, bio, achievements, why, is_seed)
-              VALUES (?, ?, ?, ?, ?, ?, 1)
+                (portfolio_slug, name, headline, bio, achievements, why,
+                 image, image_attribution, image_license, source_url, is_seed)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
               ON CONFLICT (portfolio_slug, lower(name)) DO NOTHING`,
         args: [
           p.slug,
@@ -148,6 +207,10 @@ async function seedIfEmpty(): Promise<void> {
           prof?.bio ?? "",
           JSON.stringify(prof?.achievements ?? []),
           prof?.why ?? "",
+          img?.image ?? "",
+          img?.imageAttribution ?? "",
+          img?.imageLicense ?? "",
+          img?.sourceUrl ?? "",
         ],
       });
     }
@@ -176,6 +239,10 @@ function mapNominee(r: RawNominee, myVote = 0): NomineeRow {
     bio: String(r.bio ?? ""),
     achievements,
     why: String(r.why ?? ""),
+    image: String(r.image ?? ""),
+    imageAttribution: String(r.image_attribution ?? ""),
+    imageLicense: String(r.image_license ?? ""),
+    sourceUrl: String(r.source_url ?? ""),
     upvotes,
     downvotes,
     score: upvotes - downvotes,
@@ -463,6 +530,122 @@ export async function deleteComment(id: number): Promise<boolean> {
   await ensureSchema();
   const res = await db().execute({
     sql: `DELETE FROM comments WHERE id = ? RETURNING id`,
+    args: [id],
+  });
+  return Boolean(res.rows[0]);
+}
+
+// --- AI profile drafts (review queue) ------------------------------------
+
+function jsonArray(v: unknown): string[] {
+  try {
+    const parsed = JSON.parse(String(v ?? "[]"));
+    return Array.isArray(parsed) ? parsed.map(String) : [];
+  } catch {
+    return [];
+  }
+}
+
+function mapDraft(r: RawNominee): DraftRow {
+  return {
+    id: Number(r.id),
+    nomineeId: Number(r.nominee_id),
+    nomineeName: String(r.nominee_name ?? ""),
+    portfolioSlug: String(r.portfolio_slug ?? ""),
+    bio: String(r.bio ?? ""),
+    achievements: jsonArray(r.achievements),
+    why: String(r.why ?? ""),
+    sourceUrls: jsonArray(r.source_urls),
+    model: String(r.model ?? ""),
+    status: String(r.status ?? "pending"),
+    createdAt: String(r.created_at ?? ""),
+  };
+}
+
+/** Does this nominee already have a published (non-empty) profile? */
+export async function nomineeHasProfile(id: number): Promise<boolean> {
+  await ensureSchema();
+  const { rows } = await db().execute({
+    sql: `SELECT bio FROM nominees WHERE id = ?`,
+    args: [id],
+  });
+  return Boolean(rows[0] && String(rows[0].bio ?? "").trim().length > 0);
+}
+
+export async function createDraft(args: {
+  nomineeId: number;
+  bio: string;
+  achievements: string[];
+  why: string;
+  sourceUrls: string[];
+  model: string;
+}): Promise<number | null> {
+  await ensureSchema();
+  const res = await db().execute({
+    sql: `INSERT INTO nominee_drafts
+            (nominee_id, bio, achievements, why, source_urls, model)
+          VALUES (?, ?, ?, ?, ?, ?) RETURNING id`,
+    args: [
+      args.nomineeId,
+      args.bio,
+      JSON.stringify(args.achievements ?? []),
+      args.why,
+      JSON.stringify(args.sourceUrls ?? []),
+      args.model,
+    ],
+  });
+  return res.rows[0] ? Number(res.rows[0].id) : null;
+}
+
+export async function listPendingDrafts(): Promise<DraftRow[]> {
+  await ensureSchema();
+  const { rows } = await db().execute(
+    `SELECT d.*, n.name AS nominee_name, n.portfolio_slug AS portfolio_slug
+     FROM nominee_drafts d
+     JOIN nominees n ON n.id = d.nominee_id
+     WHERE d.status = 'pending'
+     ORDER BY d.created_at ASC
+     LIMIT 200`
+  );
+  return (rows as unknown as RawNominee[]).map(mapDraft);
+}
+
+/** Publish an (optionally edited) draft onto its nominee row. */
+export async function approveDraft(
+  id: number,
+  edited?: { bio: string; achievements: string[]; why: string }
+): Promise<boolean> {
+  await ensureSchema();
+  const c = db();
+  const { rows } = await c.execute({
+    sql: `SELECT * FROM nominee_drafts WHERE id = ? AND status = 'pending'`,
+    args: [id],
+  });
+  if (!rows[0]) return false;
+  const d = mapDraft(rows[0] as unknown as RawNominee);
+  const bio = edited?.bio ?? d.bio;
+  const achievements = edited?.achievements ?? d.achievements;
+  const why = edited?.why ?? d.why;
+  await c.batch(
+    [
+      {
+        sql: `UPDATE nominees SET bio = ?, achievements = ?, why = ? WHERE id = ?`,
+        args: [bio, JSON.stringify(achievements), why, d.nomineeId],
+      },
+      {
+        sql: `UPDATE nominee_drafts SET status = 'approved' WHERE id = ?`,
+        args: [id],
+      },
+    ],
+    "write"
+  );
+  return true;
+}
+
+export async function rejectDraft(id: number): Promise<boolean> {
+  await ensureSchema();
+  const res = await db().execute({
+    sql: `UPDATE nominee_drafts SET status = 'rejected' WHERE id = ? RETURNING id`,
     args: [id],
   });
   return Boolean(res.rows[0]);

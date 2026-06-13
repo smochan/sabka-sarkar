@@ -22,7 +22,7 @@ export function Footer() {
 
           <nav aria-label="Footer" className="flex flex-col gap-6">
             <div className="flex flex-wrap gap-x-8 gap-y-2 text-sm">
-              <Link href="/#cabinet" className="hover:text-saffron-ink">
+              <Link href="/cabinet" className="hover:text-saffron-ink">
                 The Cabinet
               </Link>
               <Link href="/#plan" className="hover:text-saffron-ink">
