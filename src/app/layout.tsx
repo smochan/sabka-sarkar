@@ -3,7 +3,6 @@ import { Teko, Yatra_One, Inter, Tiro_Devanagari_Hindi } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next";
 import { site } from "@/content/site";
 import { Providers } from "@/components/auth/Providers";
-import { SmoothScroll } from "@/components/motion/SmoothScroll";
 import "./globals.css";
 
 const authEnabled = process.env.NEXT_PUBLIC_AUTH_ENABLED === "true";
@@ -78,7 +77,6 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col bg-paper text-ink">
-        <SmoothScroll />
         {authEnabled ? <Providers>{children}</Providers> : children}
         <Analytics />
       </body>
