@@ -32,21 +32,22 @@
 - **Avatar:** abstract **tricolor "rising bars" emblem** — **saffron → white → green** (true Indian-flag order), ascending left-to-right = civic progress / people rising. **No text** (maximizes legibility at ~48px in the feed). Tuned to sit fully inside the circle-safe zone.
   - **Note (2026-06-13 revision):** the middle bar was originally ink/black for legibility on the paper ground, but was changed to **white** to keep the tricolor true (avoids any "why did you alter the flag?" criticism). The white bar uses a hairline warm outline (`#5c5141` @ 34% opacity) + soft shadow so it stays visible on the off-white background.
   - The short **baseline rule** under the bars and the wordmark text remain **ink** on purpose — they are a ground line / type, not part of the tricolor, so they don't sit *inside* the flag colors.
-- **Palette:** **warm paper** ground (`#f4efe7`), ink text, saffron/green accents, tricolor rail.
-- **Banner copy:** eyebrow "AN OPEN THOUGHT EXPERIMENT FOR INDIA" + serif headline *"If the best of our generation ran the country."* + wordmark `Sabka Sarkar` / `सबकी सरकार` + `sabkasarkar.com`.
-- **Pinned card copy:** *"You are protesting for accountability. We built the roadmap."* + one-line plan summary + non-partisan tagline.
+- **Palette (revised 2026-06-14):** **clean cool near-white** ground (NOT the old warm `#f4efe7` cream — that read as generic/Claude), ink text, punchy saffron/green accents, a **navy Ashoka-chakra** watermark, and a tricolor rail whose white centre is framed with ink hairlines so it stays visible. Realigns the Twitter set to the site's new light "editorial agitprop" theme.
+- **Banner copy:** eyebrow "AN OPEN THOUGHT EXPERIMENT FOR INDIA" + **Teko condensed-caps** headline *"IF THE BEST OF OUR GENERATION RAN THE COUNTRY."* (accent word in saffron) + wordmark `SABKA SARKAR` / `सबकी सरकार` + `sabkasarkar.com`.
+- **Pinned card copy:** *"You are protesting for accountability. WE BUILT THE ROADMAP."* + one-line plan summary + non-partisan tagline.
 
-### Brand tokens (source of truth: `src/lib/og.tsx` + `src/app/globals.css`)
+### Brand tokens (source of truth: `src/lib/brand.ts` → site `globals.css` + `og.tsx`)
 | Token | Hex |
 |-------|-----|
-| Saffron | `#FF9933` |
-| Paper | `#f4efe7` |
-| India green | `#138808` |
-| Ink (warm near-black) | `#1a1714` |
+| Saffron | `#ff8a1f` |
+| Paper (cool near-white) | `~#f1f4f8` ground / `#ffffff` |
+| India green | `#0f7a2e` |
+| Ink (near-black) | `#14110d` |
 | Saffron-ink (eyebrow text) | `#b8631a` |
-| Fonts | Fraunces (serif headline), Inter (eyebrow/UI), Tiro Devanagari Hindi (सबकी सरकार) — Georgia/system fallbacks |
+| Ashoka navy (chakra) | `#21317f` |
+| Fonts | **Teko** (condensed display/headline + wordmark, Latin+Devanagari), Inter (eyebrow/UI), Tiro Devanagari Hindi (सबकी सरकार) — Google Fonts |
 
-These deliberately match the site's OG share-image system so the account reads as the same brand.
+These match the site's design system (`src/lib/brand.ts`) so the account reads as the same brand. The faint navy chakra in each asset is built by an inline `<script>` at render time (Chrome runs JS — the `--virtual-time-budget` covers it).
 
 ---
 
